@@ -48,9 +48,11 @@ We really like `uv` and recommend using it as your package manager. But feel fre
 
 Let's first clone the repository:
 ```bash
-git clone https://github.com/huggingface/nanoVLM.git
+git clone --recurse-submodules https://github.com/huggingface/nanoVLM.git
 cd nanoVLM
 ```
+> [!NOTE]
+> The `--recurse-submodules` flag fetches VLMEvalKit, which is included as a submodule for evaluation. If you already cloned without it, run `git submodule update --init`.
 
 If you want to use `uv`:
 ```bash
@@ -136,6 +138,27 @@ args = argparse.Namespace(
 )
 results = cli_evaluate(args)
 ```
+
+### Evaluation with VLMEvalKit
+
+nanoVLM also supports evaluation using [VLMEvalKit](https://github.com/open-compass/VLMEvalKit), which provides access to a wide range of VLM benchmarks for direct comparison with other models.
+
+```bash
+# One-time setup: clones VLMEvalKit and registers the nanoVLM adapter
+bash eval/setup_vlmevalkit.sh
+
+# Run evaluation (default: nanoVLM-460M-8k on MMStar)
+bash eval/eval_vlmevalkit.sh
+
+# Evaluate a specific model on multiple benchmarks
+bash eval/eval_vlmevalkit.sh nanoVLM-222M MMStar MME OCRBench
+
+# Available registered models:
+#   nanoVLM-460M-8k  (lusxvr/nanoVLM-460M-8k)
+#   nanoVLM-230M-8k  (lusxvr/nanoVLM-230M-8k)
+```
+
+For benchmarks that require an LLM judge (e.g. MMBench, MMVet), set `JUDGE_BASE_URL` and `JUDGE_KEY` environment variables before running.
 
 ## Hub integration
 
@@ -256,7 +279,7 @@ Here are some areas we're looking to work on in the near future. Contributions i
 *   **Multi-gpu training:** Training on several GPUs
 *   **Multi-image support:** Training with several images
 *   **Image-splitting:** Enabling higher resolutions through image-splitting as done in SmolVLM.
-*   **VLMEvalKit:** Integration into [VLMEvalKit](https://github.com/open-compass/VLMEvalKit) to enable further benchmarks
+*   ~~**VLMEvalKit:** Integration into [VLMEvalKit](https://github.com/open-compass/VLMEvalKit) to enable further benchmarks~~
 
 ## Citation
 

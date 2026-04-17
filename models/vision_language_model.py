@@ -219,12 +219,19 @@ class VisionLanguageModel(nn.Module):
                 repo_id=repo_id_or_path, filename="model.safetensors", revision=revision
             )
 
-        # Load config
+        # Load config, filtering unknown keys for backward compat with older checkpoints
         with open(config_path, "r") as f:
-            cfg = VLMConfig(**json.load(f))
+            raw_cfg = json.load(f)
+        from dataclasses import fields as dc_fields
+        valid_keys = {fld.name for fld in dc_fields(VLMConfig)}
+        cfg = VLMConfig(**{k: v for k, v in raw_cfg.items() if k in valid_keys})
 
         # Initialize model without loading the backbone
         model = cls(cfg, load_backbone=False)
+        # Expose which keys were actually present in the saved config so that
+        # downstream code (e.g. eval adapters) can distinguish old checkpoints
+        # from new ones, even when VLMConfig fills in defaults for missing keys.
+        model._saved_config_keys = set(raw_cfg.keys())
 
         # Load safetensors weights
         load_model(model, weights_path)
